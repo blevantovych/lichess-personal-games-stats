@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "chess_games") // Replace with your actual table name
+@Table(name = "chess_games")
 public class Game {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -239,12 +239,4 @@ public class Game {
 	public void setMoves(String moves) {
 		this.moves = moves;
 	}
-
-//	public String getGame() {
-//		return game;
-//	}
-//
-//	public void setGame(String game) {
-//		this.game = game;
-//	}
 }

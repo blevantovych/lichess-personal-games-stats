@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Controller // This means that this class is a Controller
-@RequestMapping(path = "/games") // This means URL's start with /demo (after Application path)
+@Controller
+@RequestMapping(path = "/games")
 public class GameController {
 	public static final String PLAYER_NAME = "bodya17";
 	private final GameRepository gameRepository;
@@ -43,7 +43,7 @@ public class GameController {
 	@GetMapping()
 	public String home(Model model) {
 		model.addAttribute("message", "Hello Thymeleaf!");
-		return "home";  // This refers to src/main/resources/templates/home.html
+		return "home";
 	}
 
 	@GetMapping(path = "/all")
@@ -51,7 +51,6 @@ public class GameController {
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size
 	) {
-		// This returns a JSON or XML with the users
 		return gameRepository.findAll(PageRequest.of(page, size, Sort.by("utcDate").ascending()));
 	}
 
@@ -130,8 +129,6 @@ public class GameController {
 		}
 
 		return result;
-//		return List.of(titleGamesStatsMap, lostGameWithTitledPlayer, diff);
-//		return lostGames;
 	}
 
 	@CrossOrigin(origins = "*")
@@ -229,9 +226,6 @@ public class GameController {
 		public String getName() {
 			return name;
 		}
-	}
-
-	record GameStat() {
 	}
 
 	public record GamesStats(
