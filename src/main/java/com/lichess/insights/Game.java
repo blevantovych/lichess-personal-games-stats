@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "games") // Replace with your actual table name
+@Table(name = "chess_games") // Replace with your actual table name
 public class Game {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,6 +47,12 @@ public class Game {
 	@Column(name = "blackratingdiff", nullable = false, length = 10)
 	private String blackRatingDiff;
 
+	@Column(name = "whitetitle", nullable = false, length = 10)
+	private String whitetitle;
+
+	@Column(name = "blacktitle", nullable = false, length = 10)
+	private String blacktitle;
+
 	@Column(name = "variant", nullable = false, length = 32)
 	private String variant;
 
@@ -62,14 +68,9 @@ public class Game {
 	@Column(name = "termination", nullable = false, length = 20)
 	private String termination;
 
-	@Column(name = "moves", nullable = false)
-	private int moves;
-
 	@Lob
-	@Column(name = "game", nullable = false)
-	private String game;
-
-	// Getters and Setters
+	@Column(name = "moves", nullable = false)
+	private String moves;
 
 	public int getId() {
 		return id;
@@ -175,6 +176,22 @@ public class Game {
 		this.blackRatingDiff = blackRatingDiff;
 	}
 
+	public String getWhitetitle() {
+		return whitetitle;
+	}
+
+	public void setWhitetitle(String whitetitle) {
+		this.whitetitle = whitetitle;
+	}
+
+	public String getBlacktitle() {
+		return blacktitle;
+	}
+
+	public void setBlacktitle(String blacktitle) {
+		this.blacktitle = blacktitle;
+	}
+
 	public String getVariant() {
 		return variant;
 	}
@@ -215,19 +232,19 @@ public class Game {
 		this.termination = termination;
 	}
 
-	public int getMoves() {
+	public String getMoves() {
 		return moves;
 	}
 
-	public void setMoves(int moves) {
+	public void setMoves(String moves) {
 		this.moves = moves;
 	}
 
-	public String getGame() {
-		return game;
-	}
-
-	public void setGame(String game) {
-		this.game = game;
-	}
+//	public String getGame() {
+//		return game;
+//	}
+//
+//	public void setGame(String game) {
+//		this.game = game;
+//	}
 }

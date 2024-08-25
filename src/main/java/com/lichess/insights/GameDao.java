@@ -22,7 +22,7 @@ public class GameDao {
 //	}
 
 	public List<String> findAllGames() {
-		String sql = "SELECT * FROM games";
+		String sql = "SELECT * FROM chess_games";
 		return jdbcTemplate.query(sql, (rs, rowNum) ->
 			 rs.getString(1)
 		);
