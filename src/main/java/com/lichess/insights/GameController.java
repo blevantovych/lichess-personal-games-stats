@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @Controller // This means that this class is a Controller
 @RequestMapping(path = "/games") // This means URL's start with /demo (after Application path)
 public class GameController {
+	public static final String PLAYER_NAME = "bodya17";
 	private final GameRepository gameRepository;
 
 	public GameController(GameRepository gameRepository) {
@@ -52,12 +53,12 @@ public class GameController {
 	public @ResponseBody GamesStats getRecord() {
 		List<Game> games = gameRepository.findAll();
 
-		long gamesWithWhite = games.stream().filter(game -> game.getWhite().equals("bodya17")).count();
-		long lostWithWhite = games.stream().filter(game -> game.getWhite().equals("bodya17") && game.getResult().equals("0-1")).count();
+		long gamesWithWhite = games.stream().filter(game -> game.getWhite().equals(PLAYER_NAME)).count();
+		long lostWithWhite = games.stream().filter(game -> game.getWhite().equals(PLAYER_NAME) && game.getResult().equals("0-1")).count();
 		double whiteLostPercentage = (double) lostWithWhite / gamesWithWhite;
 
-		long gamesWithBlack = games.stream().filter(game -> game.getBlack().equals("bodya17")).count();
-		long lostWithBlack = games.stream().filter(game -> game.getBlack().equals("bodya17") && game.getResult().equals("1-0")).count();
+		long gamesWithBlack = games.stream().filter(game -> game.getBlack().equals(PLAYER_NAME)).count();
+		long lostWithBlack = games.stream().filter(game -> game.getBlack().equals(PLAYER_NAME) && game.getResult().equals("1-0")).count();
 		double blackLostPercentage = (double) lostWithBlack / gamesWithBlack;
 		return new GamesStats(gamesWithWhite, lostWithWhite, whiteLostPercentage, gamesWithBlack, lostWithBlack, blackLostPercentage);
 	}
@@ -160,7 +161,7 @@ public class GameController {
 						return new DataPoint(
 						e.getKey(),
 						e.getValue().intValue(),
-						String.format("https://lichess.org/games/search?players.a=bodya17&dateMin=%s&dateMax=%s&sort.field=d&sort.order=desc#results", e.getKey(), getNextDate(e.getKey()))
+						String.format("https://lichess.org/games/search?players.a=%s&dateMin=%s&dateMax=%s&sort.field=d&sort.order=desc#results", PLAYER_NAME, e.getKey(), getNextDate(e.getKey()))
 				);
 					} catch (ParseException ex) {
 						throw new RuntimeException(ex);
