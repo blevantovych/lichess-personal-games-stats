@@ -2,7 +2,6 @@ package com.lichess.insights;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -144,55 +144,75 @@ class GameControllerTest {
 	@Test
 	void testGetTitledStats() {
 		// Arrange
-		Game game1 = new Game();
-		game1.setWhitetitle("GM");
-		game1.setBlacktitle("");
-
-		Game game2 = new Game();
-		game2.setWhitetitle("");
-		game2.setBlacktitle("IM");
-
-		Game game3 = new Game();
-		game3.setWhitetitle("GM");
-		game3.setBlacktitle("");
-
-		Game game4 = new Game();
-		game4.setWhitetitle("");
-		game4.setBlacktitle("FM");
-
-		Game game5 = new Game();
-		game5.setWhitetitle("");
-		game5.setBlacktitle("");  // Game without titled player
+		Game game1 = createGame("GM", "", "1-0", "https://lichess.org/game1", GameController.PLAYER_NAME, "Opponent1");
+		Game game2 = createGame("", "IM", "0-1", "https://lichess.org/game2", GameController.PLAYER_NAME, "Opponent2");
+		Game game3 = createGame("GM", "", "1/2-1/2", "https://lichess.org/game3", "Opponent3", GameController.PLAYER_NAME);
+		Game game4 = createGame("", "FM", "1-0", "https://lichess.org/game4", GameController.PLAYER_NAME, "Opponent4");
+		Game game5 = createGame("", "", "1-0", "https://lichess.org/game5", GameController.PLAYER_NAME, "Opponent5");  // Game without titled player
 
 		when(gameRepository.findAll()).thenReturn(Arrays.asList(game1, game2, game3, game4, game5));
 
 		// Act
-		Map<GameController.Title, Long> result = gameController.getTitledStats();
+		Map<GameController.Title, Map<String, Object>> result = gameController.calculateTitledStats();
 
 		// Assert
 		assertNotNull(result);
 		assertEquals(3, result.size());
 
-		// Check if the map is sorted by value in descending order
-		assertTrue(isSortedByValueDescending(result));
+		// Check GM stats
+		assertTitleStats(result, GameController.Title.GM, 2, 1, 1, 0,
+				Arrays.asList("https://lichess.org/game1"),
+				Arrays.asList("https://lichess.org/game3"),
+				Collections.emptyList());
 
-		assertEquals(2L, result.get(GameController.Title.GM));
-		assertEquals(1L, result.get(GameController.Title.IM));
-		assertEquals(1L, result.get(GameController.Title.FM));
-		assertNull(result.get(GameController.Title.CM));  // Title not present in the games
+		// Check IM stats
+		assertTitleStats(result, GameController.Title.IM, 1, 0, 0, 1,
+				Collections.emptyList(),
+				Collections.emptyList(),
+				Arrays.asList("https://lichess.org/game2"));
+
+		// Check FM stats
+		assertTitleStats(result, GameController.Title.FM, 1, 1, 0, 0,
+				Arrays.asList("https://lichess.org/game4"),
+				Collections.emptyList(),
+				Collections.emptyList());
 
 		verify(gameRepository, times(1)).findAll();
 	}
 
-	// Helper method to check if the map is sorted by value in descending order
-	private boolean isSortedByValueDescending(Map<GameController.Title, Long> map) {
-		Long previous = Long.MAX_VALUE;
-		for (Long value : map.values()) {
-			if (value > previous) {
-				return false;
-			}
-			previous = value;
-		}
-		return true;
+	private void assertTitleStats(Map<GameController.Title, Map<String, Object>> result,
+								  GameController.Title title,
+								  int expectedTotal, int expectedWins, int expectedDraws, int expectedLosses,
+								  List<String> expectedWonGames, List<String> expectedDrawnGames, List<String> expectedLostGames) {
+		Map<String, Object> stats = result.get(title);
+		assertNotNull(stats, "Stats for " + title + " should not be null");
+		assertEquals(expectedTotal, stats.get("total"), "Incorrect total for " + title);
+		assertEquals(expectedWins, stats.get("wins"), "Incorrect wins for " + title);
+		assertEquals(expectedDraws, stats.get("draws"), "Incorrect draws for " + title);
+		assertEquals(expectedLosses, stats.get("loses"), "Incorrect losses for " + title);
+		assertEquals(expectedWins - expectedLosses, stats.get("diff"), "Incorrect diff for " + title);
+		assertListEquals(expectedWonGames, (List<?>) stats.get("wonGames"), "Incorrect won games for " + title);
+		assertListEquals(expectedDrawnGames, (List<?>) stats.get("drawnGames"), "Incorrect drawn games for " + title);
+		assertListEquals(expectedLostGames, (List<?>) stats.get("lostGames"), "Incorrect lost games for " + title);
 	}
+
+	private void assertListEquals(List<?> expected, List<?> actual, String message) {
+		if (expected.isEmpty()) {
+			assertTrue(actual == null || actual.isEmpty(), message + " (expected empty or null list)");
+		} else {
+			assertEquals(expected, actual, message);
+		}
+	}
+
+	private Game createGame(String whiteTitle, String blackTitle, String result, String site, String white, String black) {
+		Game game = new Game();
+		game.setWhitetitle(whiteTitle);
+		game.setBlacktitle(blackTitle);
+		game.setResult(result);
+		game.setSite(site);
+		game.setWhite(white);
+		game.setBlack(black);
+		return game;
+	}
+
 }

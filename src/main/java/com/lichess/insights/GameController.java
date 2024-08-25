@@ -1,7 +1,5 @@
 package com.lichess.insights;
 
-import static java.util.Map.Entry;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -14,8 +12,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -72,27 +70,68 @@ public class GameController {
 	}
 
 	@GetMapping(path = "/stats-with-titled-players")
-	public @ResponseBody Map<Title, /*GamesStats*/ Long> getTitledStats() {
+	public String getTitledStats(Model model) {
+		Map<Title, Map<String, Object>> stats = calculateTitledStats();
+		model.addAttribute("titledStats", stats);
+		return "titled-stats";  // This will be the name of your Thymeleaf template
+	}
+
+	public Map<Title, Map<String, Object>> calculateTitledStats() {
 		List<Game> games = gameRepository.findAll();
-		Map<Title, /*GamesStats*/Long> titleGamesStatsMap = new HashMap<>();
+		Map<Title, /*GamesStats*/Integer> titleGamesStatsMap = new HashMap<>();
+		Map<Title, /*GamesStats*/Integer> lostGameWithTitledPlayer = new HashMap<>();
+		Map<Title, /*GamesStats*/Integer> drawsWithTitledPlayer = new HashMap<>();
+		Map<Title, /*GamesStats*/List<String>> lostGames = new HashMap<>();
+		Map<Title, /*GamesStats*/List<String>> wonGames = new HashMap<>();
+		Map<Title, /*GamesStats*/List<String>> drawGames = new HashMap<>();
 
 
 		for (var game : games) {
 			if ((!game.getWhitetitle().isEmpty() || !game.getBlacktitle().isEmpty())) {
 				try {
 					Title title = Title.fromString(game.getWhitetitle().isEmpty() ? game.getBlacktitle() : game.getWhitetitle());
-					titleGamesStatsMap.put(title, titleGamesStatsMap.getOrDefault(title, 0L) + 1);
+					titleGamesStatsMap.put(title, titleGamesStatsMap.getOrDefault(title, 0) + 1);
+					if (lostWithColor(game, true) || lostWithColor(game, false)) {
+						lostGameWithTitledPlayer.put(title, lostGameWithTitledPlayer.getOrDefault(title, 0) + 1);
+						List<String> lostGameWithTitle = lostGames.getOrDefault(title, new ArrayList<>());
+						lostGameWithTitle.add(game.getSite());
+						lostGames.put(title, lostGameWithTitle);
+					} else if (game.getResult().equals("1/2-1/2")) {
+						drawsWithTitledPlayer.put(title, drawsWithTitledPlayer.getOrDefault(title, 0) + 1);
+						List<String> drawnGamesWithTitle = drawGames.getOrDefault(title, new ArrayList<>());
+						drawnGamesWithTitle.add(game.getSite());
+						drawGames.put(title, drawnGamesWithTitle);
+					} else {
+						List<String> wonGamesWithTitle = wonGames.getOrDefault(title, new ArrayList<>());
+						wonGamesWithTitle.add(game.getSite());
+						wonGames.put(title, wonGamesWithTitle);
+					}
 				} catch (IllegalArgumentException ignored) {
 				}
-
 			}
 		}
 
-		return titleGamesStatsMap
-				.entrySet()
-				.stream()
-				.sorted(Entry.comparingByValue(Comparator.reverseOrder()))
-				.collect(Collectors.toMap(Entry::getKey, Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+
+		Map<Title, Map<String, Object>> result = new HashMap<>();
+
+		for (var title : titleGamesStatsMap.keySet()) {
+			Map<String, Object> resultWithTitle = new HashMap<>();
+			int wins = titleGamesStatsMap.get(title) - lostGameWithTitledPlayer.getOrDefault(title, 0) - drawsWithTitledPlayer.getOrDefault(title, 0);
+			int loses = lostGameWithTitledPlayer.getOrDefault(title, 0);
+			resultWithTitle.put("total", titleGamesStatsMap.get(title));
+			resultWithTitle.put("wins", wins);
+			resultWithTitle.put("draws", drawsWithTitledPlayer.getOrDefault(title, 0));
+			resultWithTitle.put("loses", loses);
+			resultWithTitle.put("diff", wins - loses);
+			resultWithTitle.put("lostGames", lostGames.get(title));
+			resultWithTitle.put("wonGames", wonGames.get(title));
+			resultWithTitle.put("drawnGames", drawGames.get(title));
+			result.put(title, resultWithTitle);
+		}
+
+		return result;
+//		return List.of(titleGamesStatsMap, lostGameWithTitledPlayer, diff);
+//		return lostGames;
 	}
 
 	@CrossOrigin(origins = "*")
@@ -101,6 +140,12 @@ public class GameController {
 		List<Game> games = gameRepository.findAll();
 		Map<String, Long> gamesPerDay = countGamesPerDay(games);
 		return createDataPoints(gamesPerDay);
+	}
+
+	private boolean lostWithColor(Game game, boolean isWhite) {
+		String lossResult = isWhite ? "0-1" : "1-0";
+		return (isWhite ? game.getWhite().equals(PLAYER_NAME) : game.getBlack().equals(PLAYER_NAME))
+				&& game.getResult().equals(lossResult);
 	}
 
 	private Map<String, Long> countGamesPerDay(List<Game> games) {

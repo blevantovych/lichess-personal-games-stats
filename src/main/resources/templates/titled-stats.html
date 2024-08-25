@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Statistics Against Titled Players</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+<h1>Statistics Against Titled Players</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Total Games</th>
+        <th>Wins</th>
+        <th>Draws</th>
+        <th>Losses</th>
+        <th>Difference</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${titledStats}">
+        <td th:text="${entry.key}"></td>
+        <td th:text="${entry.value.total}"></td>
+        <td th:text="${entry.value.wins}"></td>
+        <td th:text="${entry.value.draws}"></td>
+        <td th:text="${entry.value.loses}"></td>
+        <td th:text="${entry.value.diff}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Detailed Game Links</h2>
+<div th:each="entry : ${titledStats}">
+    <h3 th:text="${entry.key + ' Games'}"></h3>
+    <h4>Won Games</h4>
+    <ul>
+        <li th:each="game : ${entry.value.wonGames}">
+            <a th:href="${game}" th:text="${game}" target="_blank"></a>
+        </li>
+    </ul>
+    <h4>Drawn Games</h4>
+    <ul>
+        <li th:each="game : ${entry.value.drawnGames}">
+            <a th:href="${game}" th:text="${game}" target="_blank"></a>
+        </li>
+    </ul>
+    <h4>Lost Games</h4>
+    <ul>
+        <li th:each="game : ${entry.value.lostGames}">
+            <a th:href="${game}" th:text="${game}" target="_blank"></a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>
