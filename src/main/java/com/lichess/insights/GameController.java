@@ -1,6 +1,5 @@
 package com.lichess.insights;
 
-import static java.util.Comparator.reverseOrder;
 import static java.util.Map.Entry;
 
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +33,15 @@ public class GameController {
 		this.gameRepository = gameRepository;
 	}
 
+	public static String getNextDate(String curDate) throws ParseException {
+		final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		final Date date = format.parse(curDate);
+		final Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.DAY_OF_YEAR, 1);
+		return format.format(calendar.getTime());
+	}
+
 	@GetMapping()
 	public String home(Model model) {
 		model.addAttribute("message", "Hello Thymeleaf!");
@@ -63,6 +71,79 @@ public class GameController {
 		return new GamesStats(gamesWithWhite, lostWithWhite, whiteLostPercentage, gamesWithBlack, lostWithBlack, blackLostPercentage);
 	}
 
+	@GetMapping(path = "/stats-with-titled-players")
+	public @ResponseBody Map<Title, /*GamesStats*/ Long> getTitledStats() {
+		List<Game> games = gameRepository.findAll();
+		Map<Title, /*GamesStats*/Long> titleGamesStatsMap = new HashMap<>();
+
+
+		for (var game : games) {
+			if ((!game.getWhitetitle().isEmpty() || !game.getBlacktitle().isEmpty())) {
+				try {
+					Title title = Title.fromString(game.getWhitetitle().isEmpty() ? game.getBlacktitle() : game.getWhitetitle());
+					titleGamesStatsMap.put(title, titleGamesStatsMap.getOrDefault(title, 0L) + 1);
+				} catch (IllegalArgumentException ignored) {
+				}
+
+			}
+		}
+
+		return titleGamesStatsMap
+				.entrySet()
+				.stream()
+				.sorted(Entry.comparingByValue(Comparator.reverseOrder()))
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+	}
+
+	@CrossOrigin(origins = "*")
+	@GetMapping(path = "/calendar")
+	public @ResponseBody List<DataPoint> getCalendar() {
+		List<Game> games = gameRepository.findAll();
+		Map<String, Long> gamesPerDay = countGamesPerDay(games);
+		return createDataPoints(gamesPerDay);
+	}
+
+	private Map<String, Long> countGamesPerDay(List<Game> games) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		return games.stream()
+				.collect(Collectors.groupingBy(
+						game -> dateFormat.format(game.getDate()),
+						Collectors.counting()
+				))
+				.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByKey())
+				.collect(Collectors.toMap(
+						Map.Entry::getKey,
+						Map.Entry::getValue,
+						(oldValue, newValue) -> oldValue,
+						LinkedHashMap::new
+				));
+	}
+
+	private List<DataPoint> createDataPoints(Map<String, Long> gamesPerDay) {
+		return gamesPerDay.entrySet().stream()
+				.map(this::createDataPoint)
+				.collect(Collectors.toList());
+	}
+
+	private DataPoint createDataPoint(Map.Entry<String, Long> entry) {
+		String date = entry.getKey();
+		int gameCount = entry.getValue().intValue();
+		String link = createLichessLink(date);
+		return new DataPoint(date, gameCount, link);
+	}
+
+	private String createLichessLink(String date) {
+		try {
+			String nextDate = getNextDate(date);
+			return String.format("https://lichess.org/games/search?players.a=%s&dateMin=%s&dateMax=%s&sort.field=d&sort.order=desc#results",
+					PLAYER_NAME, date, nextDate);
+		} catch (ParseException ex) {
+			throw new RuntimeException("Error creating Lichess link", ex);
+		}
+	}
+
 	// https://lichess.org/faq#titles
 	enum Title {
 		GM("Grandmaster"),
@@ -82,10 +163,6 @@ public class GameController {
 			this.name = name;
 		}
 
-		public String getName() {
-			return name;
-		}
-
 		public static Title fromString(String t) {
 			for (Title title : Title.values()) {
 				if (title.name().equalsIgnoreCase(t)) {
@@ -99,83 +176,17 @@ public class GameController {
 			try {
 				fromString(t);
 				return true;
-			} catch(IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 				return false;
 			}
 		}
-	}
 
-	record GameStat() {}
-
-	@GetMapping(path = "/stats-with-titled-players")
-	public @ResponseBody Map<Title, /*GamesStats*/ Long> getTitledStats() {
-		List<Game> games = gameRepository.findAll();
-		Map<Title, /*GamesStats*/Long> titleGamesStatsMap = new HashMap<>();
-
-
-		for (var game : games) {
-			if ((!game.getWhitetitle().isEmpty() || !game.getBlacktitle().isEmpty())) {
-				try {
-					Title title = Title.fromString(game.getWhitetitle().isEmpty() ? game.getBlacktitle() : game.getWhitetitle());
-					titleGamesStatsMap.put(title, titleGamesStatsMap.getOrDefault(title, 0L) + 1);
-				} catch(IllegalArgumentException ignored) { }
-
-			}
+		public String getName() {
+			return name;
 		}
-
-//		games.stream().filter(g -> !g.getWhitetitle().isEmpty()).collect(Collectors.groupingBy(Game::getWhitetitle, Collectors.counting()))
-
-//		games.stream().filter(game -> game)
-//		long gamesWithWhite = games.stream().filter(game -> game.getWhite().equals("bodya17")).count();
-//		long lostWithWhite = games.stream().filter(game -> game.getWhite().equals("bodya17") && game.getResult().equals("0-1")).count();
-//		double whiteLostPercentage = (double) lostWithWhite / gamesWithWhite;
-//
-//		long gamesWithBlack = games.stream().filter(game -> game.getBlack().equals("bodya17")).count();
-//		long lostWithBlack = games.stream().filter(game -> game.getBlack().equals("bodya17") && game.getResult().equals("1-0")).count();
-//		double blackLostPercentage = (double) lostWithBlack / gamesWithBlack;
-//		return new GamesStats(gamesWithWhite, lostWithWhite, whiteLostPercentage, gamesWithBlack, lostWithBlack, blackLostPercentage);
-		return titleGamesStatsMap
-				.entrySet()
-				.stream()
-				.sorted(Entry.comparingByValue(Comparator.reverseOrder()))
-				.collect(Collectors.toMap(Entry::getKey, Entry::getValue, (oldValue, newValue) -> oldValue, LinkedHashMap::new));
 	}
 
-	@CrossOrigin(origins = "*")
-	@GetMapping(path = "/calendar")
-	public @ResponseBody List<DataPoint> getCalendar() {
-		List<Game> games = gameRepository.findAll();
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-		return games.stream()
-				.collect(Collectors.groupingBy(game -> dateFormat.format(game.getDate()), Collectors.counting()))
-				.entrySet()
-				.stream()
-				.sorted(Entry.comparingByKey())
-				.collect(Collectors.toMap(
-						Entry::getKey,
-						Entry::getValue,
-						(oldValue, newValue) -> oldValue,
-						LinkedHashMap::new)).entrySet().stream().map(e -> {
-					try {
-						return new DataPoint(
-						e.getKey(),
-						e.getValue().intValue(),
-						String.format("https://lichess.org/games/search?players.a=%s&dateMin=%s&dateMax=%s&sort.field=d&sort.order=desc#results", PLAYER_NAME, e.getKey(), getNextDate(e.getKey()))
-				);
-					} catch (ParseException ex) {
-						throw new RuntimeException(ex);
-					}
-				}).collect(Collectors.toList());
-	}
-
-	public static String getNextDate(String  curDate) throws ParseException {
-		final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		final Date date = format.parse(curDate);
-		final Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		calendar.add(Calendar.DAY_OF_YEAR, 1);
-		return format.format(calendar.getTime());
+	record GameStat() {
 	}
 
 	public record GamesStats(
