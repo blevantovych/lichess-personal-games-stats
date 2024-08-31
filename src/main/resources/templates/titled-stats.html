@@ -34,35 +34,13 @@
     <tr th:each="entry : ${titledStats}">
         <td th:text="${entry.key}"></td>
         <td th:text="${entry.value.total}"></td>
-        <td th:text="${entry.value.wins}"></td>
-        <td th:text="${entry.value.draws}"></td>
-        <td th:text="${entry.value.loses}"></td>
+        <td><a th:href="@{/games/wins/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.wins}" target="_blank"></a></td>
+        <td><a th:href="@{/games/draws/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.draws}" target="_blank"></a></td>
+        <td><a th:href="@{/games/loses/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.loses}" target="_blank"></a></td>
         <td th:text="${entry.value.diff}"></td>
     </tr>
     </tbody>
 </table>
 
-<h2>Detailed Game Links</h2>
-<div th:each="entry : ${titledStats}">
-    <h3 th:text="${entry.key + ' Games'}"></h3>
-    <h4>Won Games</h4>
-    <ul>
-        <li th:each="game : ${entry.value.wonGames}">
-            <a th:href="${game}" th:text="${game}" target="_blank"></a>
-        </li>
-    </ul>
-    <h4>Drawn Games</h4>
-    <ul>
-        <li th:each="game : ${entry.value.drawnGames}">
-            <a th:href="${game}" th:text="${game}" target="_blank"></a>
-        </li>
-    </ul>
-    <h4>Lost Games</h4>
-    <ul>
-        <li th:each="game : ${entry.value.lostGames}">
-            <a th:href="${game}" th:text="${game}" target="_blank"></a>
-        </li>
-    </ul>
-</div>
 </body>
 </html>

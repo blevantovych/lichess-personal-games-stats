@@ -9,7 +9,7 @@ public class Game {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "ID")
-	private int id;
+	private String id;
 
 	@Column(name = "event", nullable = false, length = 100)
 	private String event;
@@ -72,11 +72,11 @@ public class Game {
 	@Column(name = "moves", nullable = false)
 	private String moves;
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 

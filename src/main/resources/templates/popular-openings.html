@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table>
+  <tr>
+    <th>Opening</th>
+    <th>Occurrences</th>
+  </tr>
+  <tr th:each="instance : ${openings}">
+    <td th:text="${instance.key}">King's Gambit</td>
+    <td><a th:href="@{/games/opening/{playerName}/{key}(key=${instance.key}, playerName=${playerName})}" th:text="${instance.value}"></a></td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<ul>
+    <li th:each="game : ${games}"><a th:href="${game}" th:text="${game}">Game id</a></li>
+</ul>
+</body>
+</html>

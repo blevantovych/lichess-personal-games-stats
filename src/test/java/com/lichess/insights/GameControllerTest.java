@@ -36,18 +36,25 @@ class GameControllerTest {
 	@Test
 	void testGetCalendar() throws ParseException {
 		// Arrange
+		String playerName = "bodya17";
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Game game1 = new Game();
 		game1.setDate(dateFormat.parse("2024-08-01"));
+		game1.setWhite(playerName);
+		game1.setBlack("player2");
 		Game game2 = new Game();
+		game2.setWhite("player2");
+		game2.setBlack(playerName);
 		game2.setDate(dateFormat.parse("2024-08-01"));
 		Game game3 = new Game();
+		game3.setWhite("player2");
+		game3.setBlack(playerName);
 		game3.setDate(dateFormat.parse("2024-08-02"));
 
 		when(gameRepository.findAll()).thenReturn(Arrays.asList(game1, game2, game3));
 
 		// Act
-		List<GameController.DataPoint> result = gameController.getCalendar();
+		List<GameController.DataPoint> result = gameController.getCalendar(playerName);
 
 		// Assert
 		assertNotNull(result);
@@ -71,30 +78,31 @@ class GameControllerTest {
 	@Test
 	void testGetRecord() {
 		// Arrange
+		String playerName = "bodya17";
 		Game game1 = new Game();
-		game1.setWhite(GameController.PLAYER_NAME);
+		game1.setWhite(playerName);
 		game1.setBlack("Magnus Carlsen");
 		game1.setResult("1-0");
 
 		Game game2 = new Game();
-		game2.setWhite(GameController.PLAYER_NAME);
+		game2.setWhite(playerName);
 		game2.setBlack("Fabiano Caruana");
 		game2.setResult("0-1");
 
 		Game game3 = new Game();
 		game3.setWhite("Hikaru Nakamura");
-		game3.setBlack(GameController.PLAYER_NAME);
+		game3.setBlack(playerName);
 		game3.setResult("1-0");
 
 		Game game4 = new Game();
 		game4.setWhite("Maxime Vachier-Lagrave");
-		game4.setBlack(GameController.PLAYER_NAME);
+		game4.setBlack(playerName);
 		game4.setResult("0-1");
 
 		when(gameRepository.findAll()).thenReturn(Arrays.asList(game1, game2, game3, game4));
 
 		// Act
-		GameController.GamesStats result = gameController.getRecord();
+		GameController.GamesStats result = gameController.getRecord(playerName);
 
 		// Assert
 		assertNotNull(result);
@@ -111,18 +119,25 @@ class GameControllerTest {
 	@Test
 	void testGetCalendarExactLink() throws ParseException {
 		// Arrange
+		String playerName = "bodya17";
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Game game1 = new Game();
 		game1.setDate(dateFormat.parse("2024-08-15"));
+		game1.setWhite(playerName);
+		game1.setBlack("Magnus Carlsen");
 		Game game2 = new Game();
+		game2.setWhite(playerName);
+		game2.setBlack("MVL");
 		game2.setDate(dateFormat.parse("2024-08-15"));
 		Game game3 = new Game();
+		game3.setWhite(playerName);
+		game3.setBlack("Hikaru Nakamura");
 		game3.setDate(dateFormat.parse("2024-08-16"));
 
 		when(gameRepository.findAll()).thenReturn(Arrays.asList(game1, game2, game3));
 
 		// Act
-		List<GameController.DataPoint> result = gameController.getCalendar();
+		List<GameController.DataPoint> result = gameController.getCalendar(playerName);
 
 		// Assert
 		assertNotNull(result);
@@ -131,12 +146,12 @@ class GameControllerTest {
 		GameController.DataPoint dataPoint1 = result.get(0);
 		assertEquals("2024-08-15", dataPoint1.x());
 		assertEquals(2, dataPoint1.value());
-		assertEquals("https://lichess.org/games/search?players.a=bodya17&dateMin=2024-08-15&dateMax=2024-08-16&sort.field=d&sort.order=desc#results", dataPoint1.link());
+		assertEquals(String.format("https://lichess.org/games/search?players.a=%s&dateMin=2024-08-15&dateMax=2024-08-16&sort.field=d&sort.order=desc#results", playerName), dataPoint1.link());
 
 		GameController.DataPoint dataPoint2 = result.get(1);
 		assertEquals("2024-08-16", dataPoint2.x());
 		assertEquals(1, dataPoint2.value());
-		assertEquals("https://lichess.org/games/search?players.a=bodya17&dateMin=2024-08-16&dateMax=2024-08-17&sort.field=d&sort.order=desc#results", dataPoint2.link());
+		assertEquals(String.format("https://lichess.org/games/search?players.a=%s&dateMin=2024-08-16&dateMax=2024-08-17&sort.field=d&sort.order=desc#results", playerName), dataPoint2.link());
 
 		verify(gameRepository, times(1)).findAll();
 	}
@@ -144,24 +159,25 @@ class GameControllerTest {
 	@Test
 	void testGetTitledStats() {
 		// Arrange
-		Game game1 = createGame("GM", "", "1-0", "https://lichess.org/game1", GameController.PLAYER_NAME, "Opponent1");
-		Game game2 = createGame("", "IM", "0-1", "https://lichess.org/game2", GameController.PLAYER_NAME, "Opponent2");
-		Game game3 = createGame("GM", "", "1/2-1/2", "https://lichess.org/game3", "Opponent3", GameController.PLAYER_NAME);
-		Game game4 = createGame("", "FM", "1-0", "https://lichess.org/game4", GameController.PLAYER_NAME, "Opponent4");
-		Game game5 = createGame("", "", "1-0", "https://lichess.org/game5", GameController.PLAYER_NAME, "Opponent5");  // Game without titled player
+		String playerName = "bodya17";
+		Game game1 = createGame("GM", "", "1-0", "https://lichess.org/game1", playerName, "Opponent1");
+		Game game2 = createGame("", "IM", "0-1", "https://lichess.org/game2", playerName, "Opponent2");
+		Game game3 = createGame("GM", "", "1/2-1/2", "https://lichess.org/game3", "Opponent3", playerName);
+		Game game4 = createGame("", "FM", "1-0", "https://lichess.org/game4", playerName, "Opponent4");
+		Game game5 = createGame("", "", "1-0", "https://lichess.org/game5", playerName, "Opponent5");  // Game without titled player
 
 		when(gameRepository.findAll()).thenReturn(Arrays.asList(game1, game2, game3, game4, game5));
 
 		// Act
-		Map<GameController.Title, Map<String, Object>> result = gameController.calculateTitledStats();
+		Map<GameController.Title, Map<String, Object>> result = gameController.calculateTitledStats(playerName);
 
 		// Assert
 		assertNotNull(result);
 		assertEquals(3, result.size());
 
 		// Check GM stats
-		assertTitleStats(result, GameController.Title.GM, 2, 1, 1, 0,
-				Arrays.asList("https://lichess.org/game1"),
+		assertTitleStats(result, GameController.Title.GM, 1, 0, 1, 0,
+				Collections.emptyList(),
 				Arrays.asList("https://lichess.org/game3"),
 				Collections.emptyList());
 

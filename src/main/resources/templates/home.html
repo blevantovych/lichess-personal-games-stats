@@ -1,121 +1,17 @@
-<!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta content="IE=edge" http-equiv="X-UA-Compatible" />
-  <meta content="width=device-width, initial-scale=1" name="viewport" />
-  <title>Calendar Chart in JavaScript</title>
-  <link
-          href="https://playground.anychart.com/dLR7T9Ym/iframe"
-          rel="canonical"
-  />
-  <meta
-          content="AJAX Chart,Chart from JSON,JSON Chart,JSON Plot,Tooltip,Calendar,Interactive,Complex,Demonstration,Tutorial,Bepely,2024"
-          name="keywords"
-  />
-  <meta
-          content="AnyChart - JavaScript Charts designed to be embedded and integrated"
-          name="description"
-  />
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-  <![endif]-->
-  <link
-          href="https://cdn.anychart.com/releases/8.12.0/css/anychart-ui.min.css?hcode=a0c21fc77e1449cc86299c5faa067dc4"
-          rel="stylesheet"
-          type="text/css"
-  />
-  <style>
-    html,
-    body,
-    #container {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Title</title>
 </head>
 <body>
-<div id="container"></div>
-<script src="https://cdn.anychart.com/releases/8.12.0/js/anychart-core.min.js"></script>
-<script src="https://cdn.anychart.com/releases/8.12.0/js/anychart-calendar.min.js"></script>
-<script src="https://cdn.anychart.com/releases/8.12.0/js/anychart-data-adapter.min.js"></script>
-<script type="text/javascript">
-  // prevent premature chart script execution
-  anychart.onDocumentReady(function () {
-    // load data into the chart from a JSON file
-    anychart.data.loadJsonFile(
-            "/games/calendar",
-            // callback function to set chart data
-            (data) => chart.data(data)
-    );
-
-    // create a calendar chart
-    const chart = anychart.calendar();
-
-    // set green color to elements
-    chart.colorScale().colors(["#39d353", "#26a641", "#006d32", "#0e4429"]);
-
-    // disable color range
-    // chart.colorRange(false);
-
-    // customize months
-    const months = chart.months();
-    // set stroke for months
-    months.stroke("black", 1);
-    // set no data stroke for months
-    months.noDataStroke("black", 1);
-
-    // customize years
-    const years = chart.years();
-    // access years' title properties
-    const yearsTitle = years.title();
-    // set font color for years' title
-    yearsTitle.fontColor("darkgray");
-    // set font size for years' title
-    yearsTitle.fontSize(23);
-    // set font weight for years' title
-    yearsTitle.fontWeight(400);
-    // set padding for years' title
-    yearsTitle.padding(0, "25%", 0, 0);
-
-    // set tooltip format function
-    chart.tooltip().format(function () {
-      // get pointed article name
-      const games = this.getData("value");
-      // return article name or default text
-      return games ? `# of games ${games}` : "No games played on " + this.getData(x);
-    });
-
-    // set the container id
-    chart.container("container");
-
-    // adjust the chart's height after drawing
-    chart.listen("chartDraw", function () {
-      document.getElementById("container").style.height =
-              chart.getActualHeight() + 5 + "px";
-    });
-
-    // set the chart title
-    chart.title("Games played on lichess 2016-2024");
-
-    // draw the chart
-    chart.draw();
-
-    // handle point click events
-    chart.listen("pointClick", function (e) {
-      // get the link to the article source from the chart data
-      const link = chart.data().get(e.dataIndex, "link");
-
-      // check if there's a link
-      if (link) {
-        // open the link in a new window
-        window.open(link, "_blank");
-      }
-    });
-  });
-</script>
+    <h1>Welcome to chess insights!</h1>
+    <ul>
+        <li>Calendar</li> <!-- UI -->
+        <li>Stats with titled players</li> <!-- UI -->
+        <li>Win Percentages</li> <!-- json -->
+        <li>Games per year</li> <!-- json -->
+        <li>Popular openings</li> <!-- UI -->
+    </ul>
 </body>
 </html>
