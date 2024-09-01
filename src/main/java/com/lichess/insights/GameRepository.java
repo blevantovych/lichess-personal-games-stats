@@ -8,4 +8,5 @@ public interface GameRepository extends JpaRepository<Game, Integer> {
 
 	Page<Game> findByWhiteElo(String whiteElo, Pageable pageable);
 
+	Iterable<Game> findGamesByBlackOrWhite(String player, String player2);
 }

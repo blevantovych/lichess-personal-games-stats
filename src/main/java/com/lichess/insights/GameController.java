@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Controller
 @RequestMapping(path = "/games")
@@ -50,17 +51,17 @@ public class GameController {
 
 	@GetMapping(path = "/{playerName}")
 	public String calendar(@PathVariable String playerName, Model model) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
 		model.addAttribute("playerName", playerName);
 
-		if (games.isEmpty()) {
+		if (!games.iterator().hasNext()) {
 			return "not-found";
 		}
 
 		Calendar calendar = Calendar.getInstance();
 		// games are sorted in descending order
-		Game firstGame = games.stream().min(Comparator.comparing(Game::getDate)).orElse(null);
-		Game lastGame = games.stream().max(Comparator.comparing(Game::getDate)).orElse(null);
+		Game firstGame = StreamSupport.stream(games.spliterator(), false).min(Comparator.comparing(Game::getDate)).orElse(null);
+		Game lastGame = StreamSupport.stream(games.spliterator(), false).max(Comparator.comparing(Game::getDate)).orElse(null);
 		Date firstGameDate = firstGame.getDate();
 		Date lastGameDate = lastGame.getDate();
 		calendar.setTime(firstGameDate);
@@ -73,8 +74,7 @@ public class GameController {
 
 	@GetMapping(path = "/wins/{playerName}/{title}")
 	public String getWinsWith(@PathVariable String title, @PathVariable String playerName, Model model) {
-		List<String> games = gameRepository.findAll().stream()
-				.filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName))
+		List<String> games = StreamSupport.stream(gameRepository.findGamesByBlackOrWhite(playerName, playerName).spliterator(), false)
 				.filter(game -> checkIfOpponentIsTitled(game, title, playerName))
 				.filter(game -> wonWithColor(playerName, game, true) || wonWithColor(playerName, game, false))
 				.map(Game::getSite)
@@ -85,8 +85,8 @@ public class GameController {
 
 	@GetMapping(path = "/loses/{playerName}/{title}")
 	public @ResponseBody Iterable<String> getLosesWith(@PathVariable String title, @PathVariable String playerName) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
-		return games.stream()
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
+		return StreamSupport.stream(games.spliterator(), false)
 				.filter(game -> checkIfOpponentIsTitled(game, title, playerName))
 				.filter(game -> lostWithColor(playerName, game, true) || lostWithColor(playerName, game, false))
 				.map(Game::getSite)
@@ -95,40 +95,32 @@ public class GameController {
 
 	@GetMapping(path = "/draws/{playerName}/{title}")
 	public @ResponseBody Iterable<String> getDrawsWith(@PathVariable String title, @PathVariable String playerName) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
 
-		return games.stream()
+		return StreamSupport.stream(games.spliterator(), false)
 				.filter(game -> checkIfOpponentIsTitled(game, title, playerName) && game.getResult().equals("1/2-1/2"))
 				.map(Game::getSite)
 				.collect(Collectors.toList());
 	}
 
-//	@GetMapping(path = "/all")
-//	public @ResponseBody Iterable<Game> getAllGames(
-//			@RequestParam(defaultValue = "0") int page,
-//			@RequestParam(defaultValue = "10") int size
-//	) {
-//		return gameRepository.findAll(PageRequest.of(page, size, Sort.by("utcDate").ascending()));
-//	}
-
 	@GetMapping(path = "/win-percentages/{playerName}")
 	public @ResponseBody GamesStats getRecord(@PathVariable String playerName) {
-		List<Game> games = gameRepository.findAll();
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
 
-		long gamesWithWhite = games.stream().filter(game -> game.getWhite().equals(playerName)).count();
-		long lostWithWhite = games.stream().filter(game -> game.getWhite().equals(playerName) && game.getResult().equals("0-1")).count();
+		long gamesWithWhite = StreamSupport.stream(games.spliterator(), false).filter(game -> game.getWhite().equals(playerName)).count();
+		long lostWithWhite = StreamSupport.stream(games.spliterator(), false).filter(game -> game.getWhite().equals(playerName) && game.getResult().equals("0-1")).count();
 		double whiteLostPercentage = (double) lostWithWhite / gamesWithWhite;
 
-		long gamesWithBlack = games.stream().filter(game -> game.getBlack().equals(playerName)).count();
-		long lostWithBlack = games.stream().filter(game -> game.getBlack().equals(playerName) && game.getResult().equals("1-0")).count();
+		long gamesWithBlack = StreamSupport.stream(games.spliterator(), false).filter(game -> game.getBlack().equals(playerName)).count();
+		long lostWithBlack = StreamSupport.stream(games.spliterator(), false).filter(game -> game.getBlack().equals(playerName) && game.getResult().equals("1-0")).count();
 		double blackLostPercentage = (double) lostWithBlack / gamesWithBlack;
 		return new GamesStats(gamesWithWhite, lostWithWhite, whiteLostPercentage, gamesWithBlack, lostWithBlack, blackLostPercentage);
 	}
 
 	@GetMapping(path = "/games-per-year/{playerName}")
 	public @ResponseBody Map<Integer, Long> getGamesPerYear(@PathVariable String playerName) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
-		return games.stream()
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
+		return StreamSupport.stream(games.spliterator(), false)
 				.collect(Collectors.groupingBy(game -> {
 					final Calendar calendar = Calendar.getInstance();
 					calendar.setTime(game.getDate());
@@ -138,8 +130,8 @@ public class GameController {
 
 	@GetMapping(path = "/popular-openings/{playerName}")
 	public String getPopularOpenings(@PathVariable String playerName, Model model) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
-		var popularOpenings = games.stream()
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
+		var popularOpenings = StreamSupport.stream(games.spliterator(), false)
 				.collect(Collectors.groupingBy(Game::getOpening, Collectors.counting()))
 				.entrySet()
 				.stream()
@@ -156,7 +148,7 @@ public class GameController {
 
 	@GetMapping(path = "/opening/{playerName}/{opening}")
 	public String getGamesInOpening(Model model, @PathVariable String playerName, @PathVariable String opening) {
-		List<String> games = gameRepository.findAll().stream()
+		List<String> games = StreamSupport.stream(gameRepository.findGamesByBlackOrWhite(playerName, playerName).spliterator(), false)
 				.filter(game -> (game.getWhite().equals(playerName) || game.getBlack().equals(playerName)) && game.getOpening().equalsIgnoreCase(opening))
 				.map(Game::getSite)
 				.collect(Collectors.toList());
@@ -177,14 +169,13 @@ public class GameController {
 	}
 
 	public Map<Title, Map<String, Object>> calculateTitledStats(String playerName) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
 		Map<Title, /*GamesStats*/Integer> titleGamesStatsMap = new HashMap<>();
 		Map<Title, /*GamesStats*/Integer> lostGameWithTitledPlayer = new HashMap<>();
 		Map<Title, /*GamesStats*/Integer> drawsWithTitledPlayer = new HashMap<>();
 		Map<Title, /*GamesStats*/List<String>> lostGames = new HashMap<>();
 		Map<Title, /*GamesStats*/List<String>> wonGames = new HashMap<>();
 		Map<Title, /*GamesStats*/List<String>> drawGames = new HashMap<>();
-
 
 		for (var game : games) {
 			if ((!game.getWhitetitle().isEmpty() || !game.getBlacktitle().isEmpty())) {
@@ -234,7 +225,7 @@ public class GameController {
 	@CrossOrigin(origins = "*")
 	@GetMapping(path = "/calendar/{playerName}")
 	public @ResponseBody List<DataPoint> getCalendar(@PathVariable String playerName) {
-		List<Game> games = gameRepository.findAll().stream().filter(game -> game.getWhite().equals(playerName) || game.getBlack().equals(playerName)).toList();
+		Iterable<Game> games = gameRepository.findGamesByBlackOrWhite(playerName, playerName);
 		Map<String, Long> gamesPerDay = countGamesPerDay(games);
 		return createDataPoints(gamesPerDay, playerName);
 	}
@@ -251,9 +242,9 @@ public class GameController {
 				&& game.getResult().equals(lossResult);
 	}
 
-	private Map<String, Long> countGamesPerDay(List<Game> games) {
+	private Map<String, Long> countGamesPerDay(Iterable<Game> games) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		return games.stream()
+		return StreamSupport.stream(games.spliterator(), false)
 				.collect(Collectors.groupingBy(
 						game -> dateFormat.format(game.getDate()),
 						Collectors.counting()
