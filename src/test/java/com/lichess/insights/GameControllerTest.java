@@ -169,26 +169,26 @@ class GameControllerTest {
 		when(gameRepository.findAll()).thenReturn(Arrays.asList(game1, game2, game3, game4, game5));
 
 		// Act
-		Map<GameController.Title, Map<String, Object>> result = gameController.calculateTitledStats(playerName);
+		Map<Title, Map<String, Object>> result = gameController.calculateTitledStats(playerName);
 
 		// Assert
 		assertNotNull(result);
 		assertEquals(3, result.size());
 
 		// Check GM stats
-		assertTitleStats(result, GameController.Title.GM, 1, 0, 1, 0,
+		assertTitleStats(result, Title.GM, 1, 0, 1, 0,
 				Collections.emptyList(),
 				Arrays.asList("https://lichess.org/game3"),
 				Collections.emptyList());
 
 		// Check IM stats
-		assertTitleStats(result, GameController.Title.IM, 1, 0, 0, 1,
+		assertTitleStats(result, Title.IM, 1, 0, 0, 1,
 				Collections.emptyList(),
 				Collections.emptyList(),
 				Arrays.asList("https://lichess.org/game2"));
 
 		// Check FM stats
-		assertTitleStats(result, GameController.Title.FM, 1, 1, 0, 0,
+		assertTitleStats(result, Title.FM, 1, 1, 0, 0,
 				Arrays.asList("https://lichess.org/game4"),
 				Collections.emptyList(),
 				Collections.emptyList());
@@ -196,8 +196,8 @@ class GameControllerTest {
 		verify(gameRepository, times(1)).findAll();
 	}
 
-	private void assertTitleStats(Map<GameController.Title, Map<String, Object>> result,
-								  GameController.Title title,
+	private void assertTitleStats(Map<Title, Map<String, Object>> result,
+								  Title title,
 								  int expectedTotal, int expectedWins, int expectedDraws, int expectedLosses,
 								  List<String> expectedWonGames, List<String> expectedDrawnGames, List<String> expectedLostGames) {
 		Map<String, Object> stats = result.get(title);
