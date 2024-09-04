@@ -34,9 +34,9 @@
     <tr th:each="entry : ${titledStats}">
         <td th:text="${entry.key}"></td>
         <td th:text="${entry.value.total}"></td>
-        <td><a th:href="@{/games/wins/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.wins}" target="_blank"></a></td>
-        <td><a th:href="@{/games/draws/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.draws}" target="_blank"></a></td>
-        <td><a th:href="@{/games/loses/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.loses}" target="_blank"></a></td>
+        <td><a th:href="@{/wins/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.wins}" target="_blank"></a></td>
+        <td><a th:href="@{/draws/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.draws}" target="_blank"></a></td>
+        <td><a th:href="@{/loses/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.loses}" target="_blank"></a></td>
         <td th:text="${entry.value.diff}"></td>
     </tr>
     </tbody>

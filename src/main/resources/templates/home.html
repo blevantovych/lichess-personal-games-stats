@@ -3,15 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx-ext-path-params@2.0.0/path-params.js"></script>
 </head>
 <body>
     <h1>Welcome to chess insights!</h1>
-    <ul>
-        <li>Calendar</li> <!-- UI -->
-        <li>Stats with titled players</li> <!-- UI -->
-        <li>Win Percentages</li> <!-- json -->
-        <li>Games per year</li> <!-- json -->
-        <li>Popular openings</li> <!-- UI -->
-    </ul>
+    <div hx-ext="path-params">
+        <input id="playerName" placeholder="Player name" type="text">
+        <button hx-get="/stats-with-titled-players/{path}" hx-target="#stats" hx-swap="innerHTML"
+                hx-vals='js:{path: playerName.value}'>
+            Get insights
+        </button>
+    </div>
+<!--    <ul>-->
+<!--        <li>Calendar</li> &lt;!&ndash; UI &ndash;&gt;-->
+<!--        <li>Stats with titled players</li> &lt;!&ndash; UI &ndash;&gt;-->
+<!--        <li>Win Percentages</li> &lt;!&ndash; json &ndash;&gt;-->
+<!--        <li>Games per year</li> &lt;!&ndash; json &ndash;&gt;-->
+<!--        <li>Popular openings</li> &lt;!&ndash; UI &ndash;&gt;-->
+<!--    </ul>-->
+        <div id="stats">
+        </div>
+<!--    <div hx-ext="path-params">-->
+<!--        <a hx-get="/items/{itemId}" hx-vals='{"itemId": "42", "foo": "bar"}'>test</div>-->
+<!--    </div>-->
 </body>
 </html>
