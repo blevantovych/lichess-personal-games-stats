@@ -68,8 +68,7 @@ public class Game {
 	@Column(name = "termination", nullable = false, length = 20)
 	private String termination;
 
-	@Lob
-	@Column(name = "moves", nullable = false)
+	@Column(name = "moves", columnDefinition = "jsonb", nullable = false)
 	private String moves;
 
 	public String getId() {

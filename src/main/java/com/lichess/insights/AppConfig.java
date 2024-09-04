@@ -18,10 +18,10 @@ public class AppConfig {
 	@Bean
 	public DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-		dataSource.setUrl("jdbc:mysql://localhost:3306/lichess_games_new");
-		dataSource.setUsername("root");
-		dataSource.setPassword("admin");
+		dataSource.setDriverClassName("org.postgresql.Driver");
+		dataSource.setUrl("jdbc:postgresql://localhost:5433/chess_games");
+		dataSource.setUsername("postgres");
+		dataSource.setPassword("mysecretpassword");
 
 		return dataSource;
 	}
