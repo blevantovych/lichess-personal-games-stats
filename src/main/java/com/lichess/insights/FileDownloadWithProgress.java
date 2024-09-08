@@ -9,18 +9,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class FileDownloadWithProgress {
-	public static void main(String[] args) {
-		String fileURL = "https://lichess.org/api/games/user/Openingmastery96?tags=true&clocks=true&evals=true&opening=true"; // Replace with your file URL
-		String savePath = "Openingmastery96.pgn";         // Path to save the file
-
-		try {
-			downloadFileWithProgress(fileURL, savePath);
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void downloadFileWithProgress(String fileURL, String savePath) throws IOException, InterruptedException {
+	public static boolean downloadFileWithProgress(String playerName) throws IOException, InterruptedException {
+		String savePath = playerName + ".pgn"; // Path to save the file
+		String fileURL = String.format("https://lichess.org/api/games/user/%s?tags=true&clocks=true&evals=true&opening=true", playerName);
 		HttpClient client = HttpClient.newHttpClient();
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create(fileURL))
@@ -59,8 +50,10 @@ public class FileDownloadWithProgress {
 			inputStream.close();
 
 			System.out.println("\nDownload completed.");
+			return true;
 		} else {
 			System.out.println("No file to download. Server replied with code: " + response.statusCode());
+			return false;
 		}
 	}
 }

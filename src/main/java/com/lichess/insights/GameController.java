@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,12 +23,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 @Controller
 @RequestMapping()
 public class GameController {
-//	public static final String PLAYER_NAME = "bodya17";
+	//	public static final String PLAYER_NAME = "bodya17";
 //	public static final String PLAYER_NAME = "Zazuliak";
 //	public static final String PLAYER_NAME = "RebeccaHarris";
 //	public static final String PLAYER_NAME = "DrNykterstein";
@@ -42,6 +47,41 @@ public class GameController {
 		calendar.setTime(date);
 		calendar.add(Calendar.DAY_OF_YEAR, 1);
 		return format.format(calendar.getTime());
+	}
+
+	private static boolean checkIfOpponentIsTitled(Game game, String title, String playerName) {
+		return (game.getWhitetitle().equalsIgnoreCase(title) && !game.getWhite().equals(playerName)) || (game.getBlacktitle().equalsIgnoreCase(title) && !game.getBlack().equals(playerName));
+	}
+
+	@GetMapping(path = "/ingest/{playerName}")
+	public @ResponseBody boolean ingest(@PathVariable String playerName) throws IOException, InterruptedException {
+		try {
+			FileDownloadWithProgress.downloadFileWithProgress(playerName);
+			RunPgnToJsonAwkScript.run(playerName);
+			RunPythonScriptToConvertJsonToSql.run(playerName);
+			RunSqlFile.run(playerName);
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			cleanupTemporaryFiles(playerName);
+		}
+	}
+
+	private void cleanupTemporaryFiles(String playerName) {
+		for (var ext : List.of(".pgn", ".json", ".sql")) {
+			String fileName = playerName + ext;
+			Path path = Paths.get(fileName);
+
+			try {
+				Files.delete(path);
+				System.out.printf("File %s deleted successfully%n", fileName);
+			} catch (IOException e) {
+				System.out.printf("Failed to delete the %s file", fileName);
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@GetMapping(path = "/home/{playerName}")
@@ -164,8 +204,20 @@ public class GameController {
 		return "titled-stats";  // This will be the name of your Thymeleaf template
 	}
 
-	private static boolean checkIfOpponentIsTitled(Game game, String title, String playerName) {
-		return (game.getWhitetitle().equalsIgnoreCase(title) && !game.getWhite().equals(playerName)) || (game.getBlacktitle().equalsIgnoreCase(title) && !game.getBlack().equals(playerName));
+	@GetMapping(path = "/players")
+	public @ResponseBody Map<String, Long> getPlayers() {
+		return gameRepository.findAll().stream()
+				.flatMap(game -> Stream.of(game.getWhite(), game.getBlack()))
+				.collect(Collectors.groupingBy(x -> x, Collectors.counting()))
+				.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+				.collect(Collectors.toMap(
+						Map.Entry::getKey,
+						Map.Entry::getValue,
+						(oldValue, newValue) -> oldValue,
+						LinkedHashMap::new
+				));
 	}
 
 	public Map<Title, Map<String, Object>> calculateTitledStats(String playerName) {
