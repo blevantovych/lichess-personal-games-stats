@@ -1,0 +1,17 @@
+{
+  "name": "insights",
+  "version": "1.0.0",
+  "description": "Chess analytics app that tracks and visualizes personal game statistics, including performance against titled players and daily gameplay patterns on lichess",
+  "main": "index.js",
+  "scripts": {
+    "build-css": "tailwindcss -i ./src/main/resources/static/css/styles.css -o ./src/main/resources/static/css/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45",
+    "tailwindcss": "^3.4.10"
+  }
+}

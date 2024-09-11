@@ -1,46 +1,26 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Statistics Against Titled Players</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
-<body>
 <h1>Statistics Against Titled Players</h1>
-<table>
+<table class="border-collapse w-full">
     <thead>
     <tr>
-        <th>Title</th>
-        <th>Total Games</th>
-        <th>Wins</th>
-        <th>Draws</th>
-        <th>Losses</th>
-        <th>Difference</th>
+        <th class="border border-black p-2 text-left bg-gray-200">Title</th>
+        <th class="border border-black p-2 text-left bg-gray-200">Total Games</th>
+        <th class="border border-black p-2 text-left bg-gray-200">Wins</th>
+        <th class="border border-black p-2 text-left bg-gray-200">Draws</th>
+        <th class="border border-black p-2 text-left bg-gray-200">Losses</th>
+        <th class="border border-black p-2 text-left bg-gray-200">Difference</th>
     </tr>
     </thead>
     <tbody>
     <tr th:each="entry : ${titledStats}">
-        <td th:text="${entry.key}"></td>
-        <td th:text="${entry.value.total}"></td>
-        <td><a th:href="@{/wins/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.wins}" target="_blank"></a></td>
-        <td><a th:href="@{/draws/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.draws}" target="_blank"></a></td>
-        <td><a th:href="@{/loses/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}" th:text="${entry.value.loses}" target="_blank"></a></td>
-        <td th:text="${entry.value.diff}"></td>
+        <td class="border border-black p-2 text-left"th:text="${entry.key}"></td>
+        <td class="border border-black p-2 text-left"th:text="${entry.value.total}"></td>
+        <td class="border border-black p-2 text-left"><a th:href="@{/wins/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}"
+               th:text="${entry.value.wins}" target="_blank"></a></td>
+        <td class="border border-black p-2 text-left"><a th:href="@{/draws/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}"
+               th:text="${entry.value.draws}" target="_blank"></a></td>
+        <td class="border border-black p-2 text-left"><a th:href="@{/loses/{playerName}/{key}(key=${entry.key}, playerName=${playerName})}"
+               th:text="${entry.value.loses}" target="_blank"></a></td>
+        <td class="border border-black p-2 text-left" th:text="${entry.value.diff}"></td>
     </tr>
     </tbody>
 </table>
-
-</body>
-</html>

@@ -5,12 +5,13 @@
     <title>Title</title>
     <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx-ext-path-params@2.0.0/path-params.js"></script>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
 </head>
 <body>
     <h1>Welcome to chess insights!</h1>
     <div hx-ext="path-params">
-        <input id="playerName" placeholder="Player name" type="text">
-        <button hx-get="/stats-with-titled-players/{path}" hx-target="#stats" hx-swap="innerHTML"
+        <input class="border border-black" id="playerName" placeholder="Player name" type="text">
+        <button class="bg-lime-500 p-3" hx-get="/stats-with-titled-players/{path}" hx-target="#stats" hx-swap="innerHTML"
                 hx-vals='js:{path: playerName.value}'>
             Get insights
         </button>

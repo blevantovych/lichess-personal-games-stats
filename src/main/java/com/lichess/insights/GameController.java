@@ -29,11 +29,6 @@ import java.util.stream.StreamSupport;
 @Controller
 @RequestMapping()
 public class GameController {
-	//	public static final String PLAYER_NAME = "bodya17";
-//	public static final String PLAYER_NAME = "Zazuliak";
-//	public static final String PLAYER_NAME = "RebeccaHarris";
-//	public static final String PLAYER_NAME = "DrNykterstein";
-//	public static final String PLAYER_NAME = "nooartur";
 	private final GameRepository gameRepository;
 
 	public GameController(GameRepository gameRepository) {
